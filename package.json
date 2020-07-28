@@ -1,5 +1,5 @@
 {
-  "name": "downloader",
+  "name": "save",
   "version": "0.1.0",
   "description": "A CLI Downloader",
   "main": "main.js",
