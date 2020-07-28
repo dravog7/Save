@@ -1,5 +1,6 @@
 const axios= require("axios")
 const fs=require("fs")
+
 class singleDownload
 {
     constructor(url,filename,start=0,end=0,resumable=-1)
@@ -52,7 +53,7 @@ class singleDownload
         }).catch(this.error.bind(this));
         if(res)
             return res.headers;
-    };
+    }
     async load(url)
     {
         var headers= {};
@@ -70,21 +71,21 @@ class singleDownload
             cancelToken:this.cancelToken.token
             }).catch(this.error.bind(this));
             
+            if(res)
+            {
+                res.data.pipe(this.stream);
+                this.interval=setInterval(this.monitor.bind(this),500);
+                this.stream.on("close",this.end.bind(this));
+            }
         } catch (error) {}
-        if(res)
-        {
-            res.data.pipe(this.stream);
-            this.interval=setInterval(this.monitor.bind(this),500);
-            this.stream.on("close",this.end.bind(this));
-        }
 
-    };
+    }
     async pause()
     {
         this.cancelToken.cancel();
         console.log("paused!");
         this.partial=1;
-    };
+    }
     async resume()
     {
         console.log("resume");
@@ -101,15 +102,15 @@ class singleDownload
             this.stream=fs.createWriteStream(this.filename,{'flags':'r+',start:offset});
         }
         this.load(this.url);
-    };
+    }
     monitor()
     {
         // console.log("done:"+(this.done+this.stream.bytesWritten)+'/'+(this.total-this.start));
-    };
+    }
     end()
     {
         clearInterval(this.interval);
-    };
+    }
     save()
     {
         const obj={
@@ -124,7 +125,7 @@ class singleDownload
             partial:this.partial,
         };
         return obj;
-    };
+    }
     fromObj(obj)
     {
         Object.assign(this,obj);
@@ -132,7 +133,7 @@ class singleDownload
     error(e)
     {
         console.log(e.message);
-    };
+    }
 };
 
 module.exports=singleDownload;

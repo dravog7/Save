@@ -143,6 +143,8 @@ class multidownload
     error(e)
     {
         console.log(e.message);
+        //determine whether to exit or not
+        process.exit();
     }
 
 }

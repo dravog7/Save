@@ -1,6 +1,6 @@
 # Save
 
-    A CLI Downloader that utilizes concurrent requests for faster downloads.
+A CLI Downloader that utilizes concurrent requests for faster downloads.
 
 ## Install
 

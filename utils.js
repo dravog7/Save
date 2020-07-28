@@ -33,7 +33,13 @@ module.exports= {
     },
     getFileName:async function(url){
         //method 1: from url string
+        try {
         let filename = new URL(url).pathname;
+        }
+        catch(e){
+            console.log('invalid URL: "'+url+'"');
+            return null;
+        }
         filename = filename.substring(filename.lastIndexOf('/')+1)
         //method 2: head request disposition arg
         let response = await axios.head(url);
