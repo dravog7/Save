@@ -1,0 +1,23 @@
+{
+  "name": "downloader",
+  "version": "0.1.0",
+  "description": "A CLI Downloader",
+  "main": "main.js",
+  "bin":{
+    "save":"main.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "downloader"
+  ],
+  "author": "john abraham",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.19.2",
+    "cli-progress": "^3.8.2",
+    "colors": "^1.4.0",
+    "yargs": "^15.4.1"
+  }
+}
