@@ -1,3 +1,5 @@
 node_modules
 jstest.js
 .save
+*.mp3
+*.mkv

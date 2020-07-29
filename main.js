@@ -32,7 +32,7 @@ function checkSetup(){
 checkSetup();
 require("yargs")
     .usage('$0 <url>',
-        'download the url',
+        'Downloads the URL',
         (yargs)=>{
             yargs.positional('url',{
                 'describe':'URL to download',
@@ -42,25 +42,25 @@ require("yargs")
         (argv)=>{
             download(argv.url,argv.f,argv.parts);
         })
-    .command('r <file>',
-        'Resume a download!',
+    .command('r <filename>',
+        'Resume a download that was stopped gracefully (using Ctrl+C)',
         (yargs)=>{
-            yargs.positional('file',{
-                'describe':'filename to resume downloading!',
+            yargs.positional('filename',{
+                'describe':'filename to resume download',
                 'type':'string',
             });
         },
         (argv)=>{
-            resume(argv.file);
+            resume(argv.filename);
         })
     .option('file',{
         'alias':'f',
         'type':'string',
-        'description':'Filename of download',
+        'description':'filename of the download [default: determined from URL]',
     })
     .option('parts',{
         'alias':'p',
         'type':'number',
-        'description':'number of parts downloaded simultaneously',
+        'description':'number of parts downloaded simultaneously [default:10]',
     })
     .argv;

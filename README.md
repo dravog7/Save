@@ -16,15 +16,14 @@ A CLI Downloader that utilizes concurrent requests for faster downloads.
 
     ``` save ```
 
-## Commands and Options
+## Commands
 
-- save url -f [file]
+|Command|description|extra|
+|-------|-----------|-----|
+|save [url]|Downloads the URL|Default|
+|r [filename]|Resume a download that was stopped gracefully (using Ctrl+C)| |
 
-    Download URL to filename file(else, determine filename)
-
-- save r file
-
-    Resume a download that was stopped gracefully (using Ctrl+C)
+## Options
 
 |Option|description|Type|
 |------|:-----------:|----|

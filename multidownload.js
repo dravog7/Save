@@ -26,7 +26,7 @@ function myFormatter(options, params, payload){
 
 class multidownload
 {
-    constructor(url,filename,noof=10)
+    constructor(url,filename,noof)
     {
         this.url=url;
         this.filename=filename;
