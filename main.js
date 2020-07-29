@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 const fs = require('fs');
 const utils = require('./utils');
+const configSys= require('./configSys');
 const multiDownload = require("./multidownload");
 
 async function download(url,filename,parts=10){
@@ -10,6 +11,15 @@ async function download(url,filename,parts=10){
     }
     let d = new multiDownload(url,filename,parts);
     d.run().catch((e)=>{console.log('err:',e.message)});
+}
+
+async function resume(filename,parts=10){
+    let Obj = configSys.loadFromConfig(filename);
+    if(!Obj){
+        console.log('No download exists for filename!');
+        return;
+    }
+    Obj.resume();
 }
 
 function checkSetup(){
@@ -32,7 +42,17 @@ require("yargs")
         (argv)=>{
             download(argv.url,argv.f,argv.parts);
         })
-
+    .command('r <file>',
+        'Resume a download!',
+        (yargs)=>{
+            yargs.positional('file',{
+                'describe':'filename to resume downloading!',
+                'type':'string',
+            });
+        },
+        (argv)=>{
+            resume(argv.file);
+        })
     .option('file',{
         'alias':'f',
         'type':'string',

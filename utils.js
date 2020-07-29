@@ -33,8 +33,9 @@ module.exports= {
     },
     getFileName:async function(url){
         //method 1: from url string
+        let filename;
         try {
-        let filename = new URL(url).pathname;
+        filename = new URL(url).pathname;
         }
         catch(e){
             console.log('invalid URL: "'+url+'"');

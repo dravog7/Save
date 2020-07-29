@@ -1,9 +1,12 @@
 const axios=require("axios");
 const fs=require("fs");
+const progBar = require('cli-progress');
+const _colors = require('colors');
+const ON_DEATH = require('death');
 const single=require("./singledownload.js");
 const utils=require("./utils.js");
-const progBar = require('cli-progress')
-const _colors = require('colors');
+const singleDownload = require("./singledownload.js");
+const configSys = require("./configSys.js");
 
 function myFormatter(options, params, payload){
     let completeLength = Math.round(params.progress*options.barsize);
@@ -28,12 +31,13 @@ class multidownload
         this.url=url;
         this.filename=filename;
         this.length="";
-        this.resumable="";
+        this.resumable=null;
         this.noof=noof;
         this.parts=[];
         this.interval=0;
         this.prevspeed = 0;
         this.prevdone=0;
+        this.death = ON_DEATH(this.on_death.bind(this));
         this.bar = new progBar.SingleBar({
             format: myFormatter,
             barCompleteChar: '\u2588',
@@ -57,6 +61,7 @@ class multidownload
     }
     async allocate()
     {
+        console.log("in allocate\n");
         var stream=fs.createWriteStream(this.filename);
         var empty=new Uint8Array(400);
         var times=Math.floor(this.length/empty.length);
@@ -67,23 +72,31 @@ class multidownload
         }
         stream.write(left);
         await new Promise((resolve)=>{stream.end(resolve)});
+        stream.close();
     }
     divisions()
     {
         var starts=0;
         var ends=0;
-        if(this.resumable!="")
+        if(!this.resumable)
         {
-            var divlength=Math.floor(this.length/this.noof);
-            for(var i=0;i<this.noof;i++)
-            {
-                starts=Math.max(0,i*divlength);
-                ends=Math.min((i+1)*divlength-1,this.length);
-                if(i==this.noof-1)
-                    ends=this.length;
-                var instance=new single(this.url,this.filename,starts,ends,this.resumable);
-                this.parts.push(instance);
-            }
+            this.noof = 1;
+            console.log('This download cannot be resumed');
+        }
+        var divlength=Math.floor(this.length/this.noof);
+        for(var i=0;i<this.noof;i++)
+        {
+            starts=Math.max(0,i*divlength);
+            ends=Math.min((i+1)*divlength-1,this.length);
+            if(i==this.noof-1)
+                ends=this.length;
+            var instance=new single({
+                url:this.url,
+                filename:this.filename,
+                start:starts,
+                end:ends,
+                resumable:this.resumable});
+            this.parts.push(instance);
         }
     }
     async run()
@@ -102,6 +115,20 @@ class multidownload
         this.bar.start(this.length,0,{'task':this.filename,'speed':'N/A'});
         this.interval=setInterval(this.monitor.bind(this),1000);
     }
+    async resume()
+    {
+        if(!this.resumable){
+            console.log("going to run!");
+            this.run();
+            return;
+        }
+        for(var i=0;i<this.noof;i++)
+        {
+            this.parts[i].resume();
+        }
+        this.bar.start(this.length,0,{'task':this.filename,'speed':'N/A'});
+        this.interval=setInterval(this.monitor.bind(this),1000);
+    }
     monitor()
     {
         var done=0;
@@ -114,9 +141,13 @@ class multidownload
         this.bar.update(done,{'speed':utils.byte2string(speed)+'/s'});
         if(done>=this.length){
             clearInterval(this.interval);
-            this.bar.stop();
+            this.end();
         }
             
+    }
+    end(){
+        this.bar.stop();
+        require('./configSys').delFromConfig(this.filename);
     }
     calculateSpeed(done){
         let coeff = 0.5;
@@ -136,9 +167,21 @@ class multidownload
             parts:[],
         }
         this.parts.forEach((val,index,ar)=>{
-            obj.part.push(val.save());
+            obj.parts.push(val.save());
         });
         return obj;
+    }
+    fromObj(obj){
+        Object.assign(this,obj);
+        obj.parts.forEach((val,index,__)=>{
+            let temp = new single({
+                url:val.url,
+                filename:val.filename,
+                resuming:1
+            });
+            temp.fromObj(val);
+            this.parts[index]=temp;
+        });
     }
     error(e)
     {
@@ -146,7 +189,13 @@ class multidownload
         //determine whether to exit or not
         process.exit();
     }
-
+    on_death(sig,err){
+        this.bar.stop();
+        let obj = this.save();
+        console.log(obj);
+        require('./configSys').saveToConfig(obj);
+        process.exit();
+    }
 }
 
 module.exports=multidownload;

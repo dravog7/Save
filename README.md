@@ -18,9 +18,14 @@ A CLI Downloader that utilizes concurrent requests for faster downloads.
 
 ## Commands and Options
 
-save url -f [file]
+- save url -f [file]
 
-Options:
+    Download URL to filename file(else, determine filename)
+
+- save r file
+
+    Resume a download that was stopped gracefully (using Ctrl+C)
+
 |Option|description|Type|
 |------|:-----------:|----|
 |--help |Show help|[boolean]|

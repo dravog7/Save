@@ -3,7 +3,7 @@ const fs=require("fs")
 
 class singleDownload
 {
-    constructor(url,filename,start=0,end=0,resumable=-1)
+    constructor({url,filename,start=0,end=0,resumable=-1,resuming=0})
     {
         this.filename=filename;
         this.url=url;
@@ -18,12 +18,14 @@ class singleDownload
         this.resumable=resumable;
         this.partial=0;
         start=Math.max(0,start-1); //start is +ve
-        if(end==0)
-            this.stream=fs.createWriteStream(this.filename);
-        else
-        {
-            this.stream=fs.createWriteStream(this.filename,{flags:'r+',start:start});
-            this.partial=1;
+        if(!resuming){
+            if(end==0)
+                this.stream=fs.createWriteStream(this.filename);
+            else
+            {
+                this.stream=fs.createWriteStream(this.filename,{flags:'r+',start:start});
+                this.partial=1;
+            }
         }
             
     }
@@ -31,11 +33,13 @@ class singleDownload
     {
         if(this.total==0)
         {
-            const heads=await this.gethead(this.url);
-            try {
+            try 
+            {
+                const heads=await this.gethead(this.url);
                 this.total=heads['content-length'];
                 this.resumable=heads['accept-ranges'];
-            } catch (error) {
+            } catch (error) 
+            {
                 console.log(error);
             }
             
@@ -88,19 +92,9 @@ class singleDownload
     }
     async resume()
     {
-        console.log("resume");
         this.cancelToken=axios.CancelToken.source();
-        if(this.done==0)
-            this.done=this.stream.bytesWritten+1;
-        else
-            this.done+=this.stream.bytesWritten;
-        if(this.start==0)
-            this.stream=fs.createWriteStream(this.filename,{'flags':'a'});
-        else
-        {
-            var offset=Math.max(0,this.start+this.done-1);
-            this.stream=fs.createWriteStream(this.filename,{'flags':'r+',start:offset});
-        }
+        var offset=Math.max(0,this.start+this.done-1);
+        this.stream=fs.createWriteStream(this.filename,{'flags':'r+','start':offset});
         this.load(this.url);
     }
     monitor()
