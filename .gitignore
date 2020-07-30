@@ -1,5 +1,11 @@
 node_modules
 jstest.js
 .save
+.vscode
 *.mp3
 *.mkv
+*.txt
+package-lock.json
+!test/test_files/*.mp3
+!test/test_files/*.mkv
+!test/test_files/*.txt

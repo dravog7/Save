@@ -1,0 +1,8 @@
+node_modules
+jstest.js
+.save
+.vscode
+*.mp3
+*.mkv
+package-lock.json
+test

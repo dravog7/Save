@@ -2,24 +2,34 @@
 const fs = require('fs');
 const utils = require('./utils');
 const configSys= require('./configSys');
-const multiDownload = require("./multidownload");
+const multiDownload = require("./multiDownload");
 
-async function download(url,filename,parts=10){
-    if(!filename){
-        filename = await utils.getFileName(url);
-        if(!filename) return;
+async function download(url,fileName,parts=10,verbose=1){
+    if(!fileName){
+        fileName = await utils.getFileName(url);
+        if(!fileName) return;
     }
-    let d = new multiDownload(url,filename,parts);
+    let d = new multiDownload(url,fileName,parts,verbose);
     d.run().catch((e)=>{console.log('err:',e.message)});
 }
 
-async function resume(filename,parts=10){
-    let Obj = configSys.loadFromConfig(filename);
+async function resume(fileName,parts=10){
+    let Obj = configSys.loadFromConfig(fileName);
     if(!Obj){
-        console.log('No download exists for filename!');
+        console.log('No download exists for fileName!');
         return;
     }
     Obj.resume();
+}
+
+function ls(){
+    let fileList = configSys.listConfigs();
+    if(fileList.length<1){
+        console.log('No incomplete downloads in folder');
+    }
+    for(let entry of fileList){
+        console.log(entry)
+    }
 }
 
 function checkSetup(){
@@ -42,25 +52,37 @@ require("yargs")
         (argv)=>{
             download(argv.url,argv.f,argv.parts);
         })
-    .command('r <filename>',
+    .command('r <fileName>',
         'Resume a download that was stopped gracefully (using Ctrl+C)',
         (yargs)=>{
-            yargs.positional('filename',{
-                'describe':'filename to resume download',
+            yargs.positional('fileName',{
+                'describe':'fileName to resume download',
                 'type':'string',
             });
         },
         (argv)=>{
-            resume(argv.filename);
+            resume(argv.fileName);
+        })
+    .command('ls',
+        'list downloads in folder',(yargs)=>{},
+        (argv)=>{
+            ls();
         })
     .option('file',{
         'alias':'f',
         'type':'string',
-        'description':'filename of the download [default: determined from URL]',
+        'description':'fileName of the download [default: determined from URL]',
     })
     .option('parts',{
         'alias':'p',
         'type':'number',
+        'default':10,
         'description':'number of parts downloaded simultaneously [default:10]',
+    })
+    .option('verbose',{
+        'alias':'v',
+        'type':'number',
+        'default':1,
+        'description':'Whether to display progress bar[default:True]',
     })
     .argv;

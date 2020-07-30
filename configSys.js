@@ -1,31 +1,39 @@
 const fs = require('fs');
-const multi = require('./multidownload');
-const { config } = require('yargs');
+const multiDownload = require('./multiDownload');
 
 module.exports = {
-    configPath: function(filename){
-        return './.save/'+filename+'.json';
+    configPath: function(fileName){
+        return './.save/'+fileName+'.json';
     },
     saveToConfig: function(obj){
-        let filename = module.exports.configPath(obj.filename);
+        let fileName = module.exports.configPath(obj.fileName);
         let jsonObj = JSON.stringify(obj);
-        fs.writeFileSync(filename,jsonObj);
+        fs.writeFileSync(fileName,jsonObj);
     },
-    loadFromConfig: function(filename){
-        let configPath = module.exports.configPath(filename);
+    loadFromConfig: function(fileName){
+        let configPath = module.exports.configPath(fileName);
         if(fs.existsSync(configPath)){
             let obj = JSON.parse(fs.readFileSync(configPath));
-            let dObj = new multi(obj.url,obj.filename);
-            dObj.fromObj(obj);
+            let dObj = multiDownload.fromObj(obj);
             return dObj;
         }
         else
             return null;
     },
-    delFromConfig: function(filename){
-        let configPath = module.exports.configPath(filename);
+    delFromConfig: function(fileName){
+        let configPath = module.exports.configPath(fileName);
         if(fs.existsSync(configPath)){
             fs.unlinkSync(configPath);
         }
+    },
+    listConfigs: function(){
+        let fileNames = [];
+        for(let configFileName of fs.readdirSync('.save')){
+            fileNames.push(module.exports.getFileName(configFileName));
+        }
+        return fileNames;
+    },
+    getFileName: function(configFileName){
+        return configFileName.substring(0,a.lastIndexOf('.json'));
     }
 };

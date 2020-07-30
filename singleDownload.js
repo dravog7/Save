@@ -3,9 +3,9 @@ const fs=require("fs")
 
 class singleDownload
 {
-    constructor({url,filename,start=0,end=0,resumable=-1,resuming=0})
+    constructor(url,fileName,start=0,end=0,resumable=-1,resuming=0)
     {
-        this.filename=filename;
+        this.fileName=fileName;
         this.url=url;
         this.length="";
         this.stream="";
@@ -17,13 +17,13 @@ class singleDownload
         this.done=0;
         this.resumable=resumable;
         this.partial=0;
-        start=Math.max(0,start-1); //start is +ve
+        start=Math.max(0,start); //start is +ve
         if(!resuming){
             if(end==0)
-                this.stream=fs.createWriteStream(this.filename);
+                this.stream=fs.createWriteStream(this.fileName);
             else
             {
-                this.stream=fs.createWriteStream(this.filename,{flags:'r+',start:start});
+                this.stream=fs.createWriteStream(this.fileName,{flags:'r+',start:start});
                 this.partial=1;
             }
         }
@@ -78,7 +78,7 @@ class singleDownload
             if(res)
             {
                 res.data.pipe(this.stream);
-                this.interval=setInterval(this.monitor.bind(this),500);
+                //this.interval=setInterval(this.monitor.bind(this),500);
                 this.stream.on("close",this.end.bind(this));
             }
         } catch (error) {}
@@ -94,7 +94,7 @@ class singleDownload
     {
         this.cancelToken=axios.CancelToken.source();
         var offset=Math.max(0,this.start+this.done-1);
-        this.stream=fs.createWriteStream(this.filename,{'flags':'r+','start':offset});
+        this.stream=fs.createWriteStream(this.fileName,{'flags':'r+','start':offset});
         this.load(this.url);
     }
     monitor()
@@ -103,12 +103,12 @@ class singleDownload
     }
     end()
     {
-        clearInterval(this.interval);
+        //clearInterval(this.interval);
     }
     save()
     {
         const obj={
-            filename:this.filename,
+            fileName:this.fileName,
             url:this.url,
             length:this.length,
             resumable:this.resumable,
@@ -120,9 +120,17 @@ class singleDownload
         };
         return obj;
     }
-    fromObj(obj)
+    static fromObj(obj)
     {
-        Object.assign(this,obj);
+        let dObj = new singleDownload(
+            obj.url,
+            obj.fileName,
+            obj.start,
+            obj.total,
+            this.resumable,
+            1);
+        Object.assign(dObj,obj);
+        return dObj;
     }
     error(e)
     {
