@@ -20,8 +20,9 @@ A CLI Downloader that utilizes concurrent requests for faster downloads.
 
 |Command|description|extra|
 |-------|-----------|-----|
-|save [url]|Downloads the URL|Default|
-|r [filename]|Resume a download that was stopped gracefully (using Ctrl+C)| |
+|save download [url]|Downloads the URL|Default|
+|save resume [filename]|Resume a download that was stopped gracefully (using Ctrl+C)| |
+|save list|List incomplete downloads in folder| |
 
 ## Options
 
@@ -31,3 +32,4 @@ A CLI Downloader that utilizes concurrent requests for faster downloads.
 |--version|Show version number|[boolean]|
 |--file, -f|Filename of download|[string]|
 |--parts, -p|number of parts downloaded simultaneously|[number]|
+|--verbose -v|Determine verbose level [default:1]|[number]|
