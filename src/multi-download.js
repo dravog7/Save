@@ -5,11 +5,11 @@ const axios = require('axios')
 const fs = require('fs')
 const EventEmitter = require('events')
 const cliProgress = require('cli-progress')
+// eslint-disable-next-line no-restricted-modules
 const _colors = require('colors')
 const onDeath = require('death')
 const SingleDownload = require('./single-download.js')
 const utils = require('./utils.js')
-
 function progressFormat(options, params, payload) {
   let completeLength = Math.round(params.progress * options.barsize)
   let bar = options.barCompleteString.substr(0, completeLength) +
@@ -82,7 +82,6 @@ class MultiDownload extends EventEmitter {
     var ends = 0
     if (!this.resumable) {
       this.partsLength = 1
-      console.log('This download cannot be resumed')
     }
     var divlength = Math.floor(this.length / this.partsLength)
     for (var i = 0; i < this.partsLength; i++) {
@@ -100,8 +99,7 @@ class MultiDownload extends EventEmitter {
     try {
       await this.gethead(this.url)
     } catch (error) {
-      console.log(error)
-      return
+      throw error
     }
 
     for (var i = 0; i < this.partsLength; i++) {
@@ -115,7 +113,6 @@ class MultiDownload extends EventEmitter {
 
   async resume() {
     if (!this.resumable) {
-      console.log('going to run!')
       this.run()
       return
     }
@@ -174,9 +171,7 @@ class MultiDownload extends EventEmitter {
   }
 
   error(e) {
-    console.log(e.message)
-    // determine whether to exit or not
-    process.exit()
+    throw e
   }
 
   onDeath(_sig, _err) {

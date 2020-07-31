@@ -2,6 +2,7 @@ const axios = require('axios')
 const fs = require('fs')
 
 class SingleDownload {
+  // eslint-disable-next-line max-params
   constructor(url, fileName, start = 0, end = 0, resumable = -1, resuming = 0) {
     this.fileName = fileName
     this.url = url
@@ -33,7 +34,7 @@ class SingleDownload {
         this.total = heads['content-length']
         this.resumable = heads['accept-ranges']
       } catch (error) {
-        console.log(error)
+        throw error
       }
     }
     this.load(this.url)
@@ -75,7 +76,6 @@ class SingleDownload {
 
   async pause() {
     this.cancelToken.cancel()
-    console.log('paused!')
     this.partial = 1
   }
 
@@ -122,7 +122,7 @@ class SingleDownload {
   }
 
   error(e) {
-    console.log(e.message)
+    throw e
   }
 }
 

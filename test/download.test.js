@@ -2,7 +2,7 @@
 const assert = require('assert')
 const http = require('http')
 const parseUrl = require('url').parse
-const fs = require('fs')
+// const fs = require('fs')
 const send = require('send')
 const MultiDownload = require('../src/multi-download')
 const sha256File = require('sha256-file')
@@ -10,11 +10,11 @@ const SingleDownload = require('../src/single-download')
 
 let server = null
 
-function timeout(ms) {
-  return new Promise(resolve => {
-    setTimeout(resolve, ms)
-  })
-}
+// function timeout(ms) {
+//   return new Promise(resolve => {
+//     setTimeout(resolve, ms)
+//   })
+// }
 
 function startServer() {
   server = http.createServer(function (req, res) {
@@ -31,19 +31,19 @@ function stopServer() {
 function compareFiles(expected, obtained) {
   let expectedHash = sha256File(expected)
   let obtainedHash = sha256File(obtained)
-  return expectedHash == obtainedHash
+  return expectedHash === obtainedHash
 }
 
-function generateFile(fileName, fileSize) {
-  let file = fs.openSync('test/test_files/' + fileName, 'w')
-  let text = 'abcdefghijklmnopqrstuvwxyz\n'
-  let times = Math.floor(fileSize / text.length)
-  let left = text.substr(0, fileSize % text.length)
-  for (let i = 0; i < times; i++)
-    fs.writeSync(file, text)
-  fs.writeSync(file, left)
-  fs.closeSync(file)
-}
+// function generateFile(fileName, fileSize) {
+//   let file = fs.openSync('test/test_files/' + fileName, 'w')
+//   let text = 'abcdefghijklmnopqrstuvwxyz\n'
+//   let times = Math.floor(fileSize / text.length)
+//   let left = text.substr(0, fileSize % text.length)
+//   for (let i = 0; i < times; i++)
+//     fs.writeSync(file, text)
+//   fs.writeSync(file, left)
+//   fs.closeSync(file)
+// }
 
 // file generation
 // console.log('generating files!')

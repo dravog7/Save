@@ -29,11 +29,14 @@ module.exports = {
     fs.writeFileSync('.save/index.json', JSON.stringify(indexObj))
   },
   delFromIndexConfig: function (fileName) {
+    if (!fs.existsSync('.save'))
+      return
     let indexObj = JSON.parse(fs.readFileSync('.save/index.json'))
     let targetIndex = indexObj.downloads.findIndex(entry => {
       return entry.fileName === fileName
     })
-    indexObj.downloads.pop(targetIndex)
+    if (targetIndex !== -1)
+      indexObj.downloads.pop(targetIndex)
     fs.writeFileSync('.save/index.json', JSON.stringify(indexObj))
   },
   saveToConfig: function (obj) {

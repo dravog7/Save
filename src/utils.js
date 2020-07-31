@@ -34,7 +34,6 @@ module.exports = {
     try {
       filename = new URL(url).pathname
     } catch (error) {
-      console.log('invalid URL: "' + url + '"')
       return null
     }
     filename = filename.substring(filename.lastIndexOf('/') + 1)
