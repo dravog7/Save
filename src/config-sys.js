@@ -12,6 +12,8 @@ module.exports = {
     }))
   },
   saveToIndexConfig: function (obj) {
+    if (!fs.existsSync('.save/index.json'))
+      return
     let indexObj = JSON.parse(fs.readFileSync('.save/index.json'))
     let targetIndex = indexObj.downloads.findIndex(entry => {
       return entry.fileName === obj.fileName
@@ -29,7 +31,7 @@ module.exports = {
     fs.writeFileSync('.save/index.json', JSON.stringify(indexObj))
   },
   delFromIndexConfig: function (fileName) {
-    if (!fs.existsSync('.save'))
+    if (!fs.existsSync('.save/index.json'))
       return
     let indexObj = JSON.parse(fs.readFileSync('.save/index.json'))
     let targetIndex = indexObj.downloads.findIndex(entry => {
@@ -64,7 +66,9 @@ module.exports = {
     }
   },
   listConfigs: function () {
-    return JSON.parse(fs.readFileSync('.save/index.json')).downloads
+    if (fs.existsSync('.save/index.json'))
+      return JSON.parse(fs.readFileSync('.save/index.json')).downloads
+    return []
   },
   getFileName: function (configFileName) {
     return configFileName.substring(0, configFileName.lastIndexOf('.json'))

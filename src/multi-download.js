@@ -4,27 +4,10 @@
 const axios = require('axios')
 const fs = require('fs')
 const EventEmitter = require('events')
-const cliProgress = require('cli-progress')
-// eslint-disable-next-line no-restricted-modules
-const _colors = require('colors')
 const onDeath = require('death')
 const SingleDownload = require('./single-download.js')
 const utils = require('./utils.js')
-function progressFormat(options, params, payload) {
-  let completeLength = Math.round(params.progress * options.barsize)
-  let bar = options.barCompleteString.substr(0, completeLength) +
-            options.barIncompleteString.substr(0, options.barsize - completeLength)
-  let progText = utils.byte2string(params.value) + '/' + utils.byte2string(params.total)
-  let etaText = utils.seconds2time(params.eta)
-  let baseText = ''
-  if (params.value >= params.total) {
-    baseText = '#' + _colors.grey(payload.task) + ' [' + bar + '] ' + _colors.green(progText)
-  } else {
-    baseText = '#' + payload.task + ' [' + bar + '] ' + _colors.yellow(progText)
-  }
-  baseText += ' |' + etaText + '|speed:' + payload.speed
-  return baseText
-}
+const Monitor = require('./monitor.js')
 
 class MultiDownload extends EventEmitter {
   constructor(url, fileName, partsLength, verbose = 1) {
@@ -36,18 +19,10 @@ class MultiDownload extends EventEmitter {
     this.partsLength = partsLength
     this.parts = []
     this.interval = 0
-    this.prevspeed = 0
-    this.prevdone = 0
-    this.verbose = verbose
+
+    this.monitor = new Monitor(this, verbose)
+
     this.offDeath = onDeath(this.onDeath.bind(this))
-    if (verbose)
-      this.bar = new cliProgress.SingleBar({
-        format: progressFormat,
-        barCompleteChar: '\u2588',
-        barIncompleteChar: '\u2591',
-        hideCursor: true,
-        stopOnComplete: true,
-      })
   }
 
   async gethead(url) {
@@ -58,6 +33,7 @@ class MultiDownload extends EventEmitter {
     res = res.headers
     this.length = res['content-length']
     this.resumable = res['accept-ranges']
+    this.emit('head')
     await this.allocate()// allocate file size
     this.divisions() // make SingleDownload parts
   }
@@ -95,20 +71,13 @@ class MultiDownload extends EventEmitter {
     }
   }
 
-  async run(_callback) {
-    try {
-      await this.gethead(this.url)
-    } catch (error) {
-      throw error
-    }
-
+  async run() {
+    await this.gethead(this.url)
     for (var i = 0; i < this.partsLength; i++) {
       this.parts[i].run()
     }
-    if (this.verbose) {
-      this.bar.start(this.length, 0, {task: this.fileName, speed: 'N/A'})
-    }
-    this.interval = setInterval(this.monitor.bind(this), 1000)
+    this.emit('start')
+    this.interval = setInterval(this.observer.bind(this), 1000)
   }
 
   async resume() {
@@ -119,18 +88,20 @@ class MultiDownload extends EventEmitter {
     for (var i = 0; i < this.partsLength; i++) {
       this.parts[i].resume()
     }
-    this.bar.start(this.length, 0, {task: this.fileName, speed: 'N/A'})
-    this.interval = setInterval(this.monitor.bind(this), 1000)
+    this.emit('resume')
+    this.interval = setInterval(this.observer.bind(this), 1000)
   }
 
-  monitor() {
+  progress() {
     var done = 0
     for (var i = 0; i < this.parts.length; i++) {
       done += this.parts[i].done + this.parts[i].stream.bytesWritten
     }
-    let speed = this.calculateSpeed(done)
-    if (this.verbose)
-      this.bar.update(done, {speed: utils.byte2string(speed) + '/s'})
+    return done
+  }
+
+  observer() {
+    var done = this.progress()
     if (done >= this.length) {
       clearInterval(this.interval)
       this.end()
@@ -138,19 +109,9 @@ class MultiDownload extends EventEmitter {
   }
 
   end() {
-    if (this.verbose)
-      this.bar.stop()
     require('./config-sys').delFromConfig(this.fileName)
     this.emit('end')
     this.offDeath()
-  }
-
-  calculateSpeed(done) {
-    let coeff = 0.5
-    let currSpeed = done - this.prevdone
-    this.prevdone = done
-    this.prevspeed = (currSpeed * coeff) + ((1 - coeff) * this.prevspeed)
-    return this.prevspeed
   }
 
   save() {
@@ -160,8 +121,7 @@ class MultiDownload extends EventEmitter {
       length: this.length,
       resumable: this.resumable,
       partsLength: this.partsLength,
-      prevdone: this.prevdone,
-      prevspeed: this.prevspeed,
+      monitor: this.monitor.save(),
       parts: [],
     }
     this.parts.forEach((val, _index, _ar) => {
@@ -175,9 +135,9 @@ class MultiDownload extends EventEmitter {
   }
 
   onDeath(_sig, _err) {
-    this.bar.stop()
     let obj = this.save()
     require('./config-sys').saveToConfig(obj)
+    this.monitor.cliDisplay.stop()
     process.exit()
   }
 }
@@ -185,9 +145,11 @@ class MultiDownload extends EventEmitter {
 MultiDownload.fromObj = function (obj) {
   let dObj = new MultiDownload(obj.url, obj.fileName, obj.partsLength)
   Object.assign(dObj, obj)
-  obj.parts.forEach((val, index, __) => {
-    let instance = SingleDownload.fromObj(val)
-    dObj.parts[index] = instance
+
+  dObj.monitor = Monitor.fromObj(obj.monitor, dObj)
+
+  obj.parts.forEach((val, index, array) => {
+    array[index] = SingleDownload.fromObj(val)
   })
   return dObj
 }

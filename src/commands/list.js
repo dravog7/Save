@@ -6,6 +6,10 @@ class ListCommand extends Command {
   async run() {
     const {flags} = this.parse(ListCommand)
     let entries = configSys.listConfigs()
+    if (entries.length === 0) {
+      await this.log('No incomplete downloads!')
+      return
+    }
     cli.table(entries, {
       filename: {
         get(row) {
