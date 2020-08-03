@@ -1,5 +1,7 @@
 # Save
 
+[![Build Status](https://travis-ci.com/dravog7/Save.svg?branch=master)](https://travis-ci.com/dravog7/Save)
+
 A CLI Downloader that utilizes concurrent requests for faster downloads.
 
 ## Install
