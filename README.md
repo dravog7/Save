@@ -1,6 +1,6 @@
 # Save
 
-[![Build Status](https://travis-ci.com/dravog7/Save.svg?branch=master)](https://travis-ci.com/dravog7/Save)
+![Node.js CI](https://github.com/dravog7/Save/workflows/Node.js%20CI/badge.svg)
 
 A CLI Downloader that utilizes concurrent requests for faster downloads.
 
