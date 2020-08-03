@@ -43,6 +43,7 @@ class Monitor {
     this.downloadObj.on('start', this.start.bind(this))
     this.downloadObj.on('resume', this.resume.bind(this))
     this.downloadObj.on('end', this.end.bind(this))
+    this.downloadObj.on('death', this.end.bind(this))
   }
 
   calculateSpeed(done) {
@@ -82,6 +83,7 @@ class Monitor {
 
   end() {
     clearInterval(this.interval)
+    this.run()
     if (this.verbose)
       this.cliDisplay.stop()
   }

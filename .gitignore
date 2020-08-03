@@ -6,5 +6,6 @@
 /yarn.lock
 node_modules
 .save
-/test/*.txt
-/test/*.mp3
+*.txt
+*.mp3
+!test/test_files/*

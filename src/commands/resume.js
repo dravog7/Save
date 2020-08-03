@@ -5,8 +5,7 @@ class ResumeCommand extends Command {
   async run() {
     const {flags, args} = this.parse(ResumeCommand)
     let downloadObject = configSys.loadFromConfig(args.fileName)
-    downloadObject.verbose = flags.verbose
-    downloadObject.resume()
+    downloadObject.resume(flags.verbose)
     await new Promise(resolve => {
       downloadObject.on('end', resolve)
     })
@@ -23,7 +22,7 @@ ResumeCommand.args = [
 ]
 
 ResumeCommand.flags = {
-  verbose: flags.boolean({char: 'v', description: 'verbose level', default: 1}),
+  verbose: flags.integer({char: 'v', description: 'verbose level', default: 1}),
 }
 
 module.exports = ResumeCommand

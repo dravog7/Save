@@ -9,10 +9,7 @@ class DownloadCommand extends Command {
     if (!fileName)
       fileName = await utils.getFileName(args.url)
     let downloadObject = new MultiDownload(args.url, fileName, flags.parts, flags.verbose)
-    downloadObject.run()
-    await new Promise(resolve => {
-      downloadObject.on('end', resolve)
-    })
+    await downloadObject.run()
   }
 }
 

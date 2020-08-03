@@ -2,7 +2,7 @@
 const assert = require('assert')
 const http = require('http')
 const parseUrl = require('url').parse
-// const fs = require('fs')
+const fs = require('fs')
 const send = require('send')
 const MultiDownload = require('../src/multi-download')
 const sha256File = require('sha256-file')
@@ -10,11 +10,11 @@ const SingleDownload = require('../src/single-download')
 
 let server = null
 
-// function timeout(ms) {
-//   return new Promise(resolve => {
-//     setTimeout(resolve, ms)
-//   })
-// }
+function timeout(ms) {
+  return new Promise(resolve => {
+    setTimeout(resolve, ms)
+  })
+}
 
 function startServer() {
   server = http.createServer(function (req, res) {
@@ -57,6 +57,9 @@ describe('Server Based Tests', function () {
     setTimeout(stopServer, 1000)
   })
   describe('SingleDownload', function () {
+    afterEach(function () {
+      fs.unlinkSync(this.currentTest.value)
+    })
     it('continous download', async function () {
       let url = 'http://localhost:3000/a.txt'
       let destFile = 'test/a.txt'
@@ -73,23 +76,46 @@ describe('Server Based Tests', function () {
       if (!compareFiles('test/test_files/a.txt', destFile)) {
         assert.fail('Downloaded File Hash not equal!')
       }
+      this.test.value = destFile
     })
   })
   describe('MultiDownload', function () {
+    afterEach(function () {
+      fs.unlinkSync(this.currentTest.value)
+    })
     it('continous download', async function () {
       let url = 'http://localhost:3000/a.txt'
       let destFile = 'test/am.txt'
       let dObj = new MultiDownload(url, destFile, 10, 0)
       try {
-        await new Promise(function (resolve) {
-          dObj.on('end', resolve)
-          dObj.run()
-        })
+        await dObj.run()
       } catch (error) {
         assert.fail(error)
       }
       if (!compareFiles('test/test_files/a.txt', destFile))
         assert.fail('Downloaded File Hash not equal!')
+
+      this.test.value = destFile
+    })
+
+    it('resume download', async function () {
+      let url = 'http://localhost:3000/a.txt'
+      let destFile = 'test/amr.txt'
+      let dObj = new MultiDownload(url, destFile, 10, 0)
+      let obj = dObj.save()
+      let dPromise = dObj.run()
+      // eslint-disable-next-line no-await-in-loop
+      while (dObj.monitor.prevDone < 1024 * 2) await timeout(30)
+      dObj.onDeath()
+      await dPromise
+
+      let drObj = MultiDownload.fromObj(obj)
+      await drObj.resume()
+
+      if (!compareFiles('test/test_files/a.txt', destFile))
+        assert.fail('Downloaded File Hash not equal!')
+
+      this.test.value = destFile
     })
   })
 })

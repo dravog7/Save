@@ -8,6 +8,7 @@ const onDeath = require('death')
 const SingleDownload = require('./single-download.js')
 const utils = require('./utils.js')
 const Monitor = require('./monitor.js')
+const {resolve} = require('path')
 
 class MultiDownload extends EventEmitter {
   constructor(url, fileName, partsLength, verbose = 1) {
@@ -78,11 +79,18 @@ class MultiDownload extends EventEmitter {
     }
     this.emit('start')
     this.interval = setInterval(this.observer.bind(this), 1000)
+    await Promise.race(
+      [new Promise(resolve => {
+        this.on('end', resolve)
+      }),
+      new Promise(resolve => {
+        this.on('death', resolve)
+      })])
   }
 
   async resume() {
     if (!this.resumable) {
-      this.run()
+      await this.run()
       return
     }
     for (var i = 0; i < this.partsLength; i++) {
@@ -90,6 +98,13 @@ class MultiDownload extends EventEmitter {
     }
     this.emit('resume')
     this.interval = setInterval(this.observer.bind(this), 1000)
+    await Promise.race(
+      [new Promise(resolve => {
+        this.on('end', resolve)
+      }),
+      new Promise(resolve => {
+        this.on('death', resolve)
+      })])
   }
 
   progress() {
@@ -134,16 +149,23 @@ class MultiDownload extends EventEmitter {
     throw e
   }
 
+  pause() {
+    for (let part of this.parts) {
+      part.pause()
+    }
+  }
+
   onDeath(_sig, _err) {
+    clearInterval(this.interval)
+    this.pause()
     let obj = this.save()
     require('./config-sys').saveToConfig(obj)
-    this.monitor.cliDisplay.stop()
-    process.exit()
+    this.emit('death')
   }
 }
 
 MultiDownload.fromObj = function (obj) {
-  let dObj = new MultiDownload(obj.url, obj.fileName, obj.partsLength)
+  let dObj = new MultiDownload(obj.url, obj.fileName, obj.partsLength, obj.monitor.verbose)
   Object.assign(dObj, obj)
 
   dObj.monitor = Monitor.fromObj(obj.monitor, dObj)

@@ -1,20 +1,32 @@
 const fs = require('fs')
+const path = require('path')
 const MultiDownload = require('./multi-download.js')
 
 module.exports = {
   configPath: function (fileName) {
-    return './.save/' + fileName + '.json'
+    let JSONfile = path.basename(fileName) + '.json'
+    let saveDir = this.savePath(fileName)
+    return path.resolve(saveDir, JSONfile)
   },
-  setupConfig: function () {
-    fs.mkdirSync('.save')
-    fs.writeFileSync('.save/index.json', JSON.stringify({
+  savePath: function (fileName) {
+    let absPath = path.resolve(fileName)
+    let dir = path.dirname(absPath)
+    let saveDir = path.resolve(dir, '.save')
+    return saveDir
+  },
+  setupConfig: function (fileName) {
+    let saveDir = this.savePath(fileName)
+    fs.mkdirSync(saveDir)
+    fs.writeFileSync(path.resolve(saveDir, 'index.json'), JSON.stringify({
       downloads: [],
     }))
   },
   saveToIndexConfig: function (obj) {
-    if (!fs.existsSync('.save/index.json'))
+    let saveDir = this.savePath(obj.fileName)
+    let saveIndex = path.resolve(saveDir, 'index.json')
+    if (!fs.existsSync(saveIndex))
       return
-    let indexObj = JSON.parse(fs.readFileSync('.save/index.json'))
+    let indexObj = JSON.parse(fs.readFileSync(saveIndex))
     let targetIndex = indexObj.downloads.findIndex(entry => {
       return entry.fileName === obj.fileName
     })
@@ -28,22 +40,25 @@ module.exports = {
       indexObj.downloads.push(entryObj)
     else
       indexObj.downloads[targetIndex] = entryObj
-    fs.writeFileSync('.save/index.json', JSON.stringify(indexObj))
+    fs.writeFileSync(saveIndex, JSON.stringify(indexObj))
   },
   delFromIndexConfig: function (fileName) {
-    if (!fs.existsSync('.save/index.json'))
+    let saveDir = this.savePath(fileName)
+    let saveIndex = path.resolve(saveDir, 'index.json')
+    if (!fs.existsSync(saveIndex))
       return
-    let indexObj = JSON.parse(fs.readFileSync('.save/index.json'))
+    let indexObj = JSON.parse(fs.readFileSync(saveIndex))
     let targetIndex = indexObj.downloads.findIndex(entry => {
       return entry.fileName === fileName
     })
     if (targetIndex !== -1)
       indexObj.downloads.pop(targetIndex)
-    fs.writeFileSync('.save/index.json', JSON.stringify(indexObj))
+    fs.writeFileSync(saveIndex, JSON.stringify(indexObj))
   },
   saveToConfig: function (obj) {
-    if (!fs.existsSync('.save'))
-      this.setupConfig()
+    let saveDir = this.savePath(obj.fileName)
+    if (!fs.existsSync(saveDir))
+      this.setupConfig(obj.fileName)
     this.saveToIndexConfig(obj)
     let fileName = this.configPath(obj.fileName)
     let jsonObj = JSON.stringify(obj)
@@ -66,11 +81,13 @@ module.exports = {
     }
   },
   listConfigs: function () {
-    if (fs.existsSync('.save/index.json'))
-      return JSON.parse(fs.readFileSync('.save/index.json')).downloads
+    let saveIndex = path.resolve('.save/index.json')
+    if (fs.existsSync(saveIndex))
+      return JSON.parse(fs.readFileSync(saveIndex)).downloads
     return []
   },
   getFileName: function (configFileName) {
-    return configFileName.substring(0, configFileName.lastIndexOf('.json'))
+    let JSONFileName = path.basename(configFileName)
+    return JSONFileName.substring(0, JSONFileName.lastIndexOf('.json'))
   },
 }
