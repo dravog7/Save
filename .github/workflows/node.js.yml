@@ -25,7 +25,6 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
-    - run: echo ${{ github.event_name }}
     - run: npm ci
     - run: npm run build --if-present
     - run: npm test
@@ -40,7 +39,7 @@ jobs:
         with:
           node-version: 10
       - run: npm install
-      - run: echo {{$github.event.ref}}
+      - run: echo ${{github.event.ref}}
       - uses: JS-DevTools/npm-publish@v1
         with:
           token: ${{ secrets.NPM_TOKEN }}
