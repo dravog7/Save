@@ -1,12 +1,12 @@
 {
   "name": "save-cli",
   "description": "A CLI Downloader",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "author": "dravog7 @dravog7",
   "bin": {
     "save": "./bin/run"
   },
-  "bugs": "https://github.com/dravog7/save-cli/issues",
+  "bugs": "https://github.com/dravog7/save/issues",
   "dependencies": {
     "@oclif/command": "^1.7.0",
     "@oclif/config": "^1.16.0",
@@ -39,9 +39,11 @@
     "/oclif.manifest.json",
     "/src"
   ],
-  "homepage": "https://github.com/dravog7/save-cli",
+  "homepage": "https://github.com/dravog7/save",
   "keywords": [
-    "oclif"
+    "oclif",
+    "downloader",
+    "concurrency"
   ],
   "license": "MIT",
   "main": "src/index.js",
@@ -52,7 +54,7 @@
       "@oclif/plugin-help"
     ]
   },
-  "repository": "dravog7/save-cli",
+  "repository": "dravog7/save",
   "scripts": {
     "postpack": "rm -f oclif.manifest.json",
     "posttest": "eslint .",

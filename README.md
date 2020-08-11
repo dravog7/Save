@@ -1,18 +1,16 @@
 # Save
 
 ![Node.js CI](https://github.com/dravog7/Save/workflows/Node.js%20CI/badge.svg)
+[![npm version](https://badge.fury.io/js/save-cli.svg)](https://www.npmjs.com/package/save-cli)
+[![npm downloads](https://img.shields.io/npm/dm/save-cli.svg)](https://www.npmjs.com/package/save-cli)
 
 A CLI Downloader that utilizes concurrent requests for faster downloads.
 
 ## Install
 
-- Download or Clone this repository
+- Download from npm
 
-- Open terminal inside the downloaded repository
-
-- Install globally the package
-
-    ```npm install -g .```
+    ``` npm install save-cli -g ```
 
 - Run the command in terminal
 
@@ -35,3 +33,21 @@ A CLI Downloader that utilizes concurrent requests for faster downloads.
 |--file, -f|Filename of download|[string]|
 |--parts, -p|number of parts downloaded simultaneously|[number]|
 |--verbose -v|Determine verbose level [default:1]|[number]|
+
+## dev-installations
+
+- Fork and clone this repository
+
+- Install dev dependencies
+
+    ```npm  install --dev```
+
+- Run
+
+    ``` ./bin/run ``` or ```./bin/run.cmd```
+
+  To access the CLI entry point
+
+## Contributions
+
+- Welcoming pull requests for issues!
